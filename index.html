@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fliegende Kugeln durch den Torus</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"></script>
+    <style>
+        canvas { display: block; margin: auto; }
+        #controls { text-align: center; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <canvas id="animationCanvas"></canvas>
+    <div id="controls">
+        <button id="toggleMovement">Start/Stop Bewegung</button>
+        <button id="toggleRotation">Start/Stop Torus-Rotation</button>
+    </div>
+    <script>
+        // Szene, Kamera und Renderer
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.querySelector('#animationCanvas') });
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        camera.position.z = 20;
+
+        // Torus hinzufügen
+        const torusGeometry = new THREE.TorusGeometry(10, 3, 16, 100);
+        const torusMaterial = new THREE.MeshBasicMaterial({ color: 0x0077ff, wireframe: true });
+        const torus = new THREE.Mesh(torusGeometry, torusMaterial);
+        scene.add(torus);
+
+        // Kugeln hinzufügen
+        const spheres = [];
+        const sphereMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+        const radii = [4, 5, 6, 7]; // Unterschiedliche Radien der Kreisbahnen
+
+        for (let i = 0; i < 4; i++) {
+            const sphereGeometry = new THREE.SphereGeometry(0.5, 32, 32);
+            const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+            spheres.push({ mesh: sphere, angle: i * Math.PI / 2, radius: radii[i] });
+            scene.add(sphere);
+        }
+
+        // Animation
+        let isMoving = true, isRotating = true;
+        function animate(time) {
+            requestAnimationFrame(animate);
+
+            // Kugelbewegung
+            if (isMoving) {
+                spheres.forEach(s => {
+                    s.angle += 0.01;
+                    s.mesh.position.x = s.radius * Math.cos(s.angle);
+                    s.mesh.position.y = s.radius * Math.sin(s.angle);
+                });
+            }
+
+            // Torus-Rotation
+            if (isRotating) {
+                torus.rotation.x += 0.01;
+                torus.rotation.y += 0.01;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // Event-Listener für Buttons
+        document.getElementById('toggleMovement').addEventListener('click', () => isMoving = !isMoving);
+        document.getElementById('toggleRotation').addEventListener('click', () => isRotating = !isRotating);
+
+        animate();
+    </script>
+</body>
+</html>
