@@ -6,15 +6,45 @@
     <title>Fliegende Kugeln durch den Torus</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"></script>
     <style>
-        canvas { display: block; margin: auto; }
-        #controls { text-align: center; margin-top: 20px; }
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        #controls {
+            position: absolute;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        #controls button {
+            padding: 10px 15px;
+            font-size: 14px;
+            background-color: #0077ff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #controls button:hover {
+            background-color: #005bb5;
+        }
     </style>
 </head>
 <body>
     <canvas id="animationCanvas"></canvas>
     <div id="controls">
-        <button id="toggleMovement">Start/Stop Bewegung</button>
-        <button id="toggleRotation">Start/Stop Torus-Rotation</button>
+        <button id="toggleMovement">Start/Stop Kugelbewegung (K)</button>
+        <button id="toggleRotation">Start/Stop Torus-Rotation (T)</button>
     </div>
     <script>
         // Szene, Kamera und Renderer
@@ -23,7 +53,15 @@
         const renderer = new THREE.WebGLRenderer({ canvas: document.querySelector('#animationCanvas') });
 
         renderer.setSize(window.innerWidth, window.innerHeight);
-        camera.position.z = 20;
+        camera.position.z = 25;
+
+        // Beleuchtung hinzufügen
+        const ambientLight = new THREE.AmbientLight(0x404040); // Weiches Umgebungslicht
+        scene.add(ambientLight);
+
+        const pointLight = new THREE.PointLight(0xffffff, 1, 50); // Punktlichtquelle
+        pointLight.position.set(10, 10, 10);
+        scene.add(pointLight);
 
         // Torus hinzufügen
         const torusGeometry = new THREE.TorusGeometry(10, 3, 16, 100);
@@ -33,11 +71,11 @@
 
         // Kugeln hinzufügen
         const spheres = [];
-        const sphereMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+        const sphereMaterial = new THREE.MeshStandardMaterial({ color: 0xff5c00 });
         const radii = [4, 5, 6, 7]; // Unterschiedliche Radien der Kreisbahnen
 
         for (let i = 0; i < 4; i++) {
-            const sphereGeometry = new THREE.SphereGeometry(0.5, 32, 32);
+            const sphereGeometry = new THREE.SphereGeometry(1, 32, 32); // Kugel mit hoher Auflösung
             const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
             spheres.push({ mesh: sphere, angle: i * Math.PI / 2, radius: radii[i] });
             scene.add(sphere);
@@ -51,7 +89,7 @@
             // Kugelbewegung
             if (isMoving) {
                 spheres.forEach(s => {
-                    s.angle += 0.01;
+                    s.angle += 0.02;
                     s.mesh.position.x = s.radius * Math.cos(s.angle);
                     s.mesh.position.y = s.radius * Math.sin(s.angle);
                 });
@@ -69,6 +107,20 @@
         // Event-Listener für Buttons
         document.getElementById('toggleMovement').addEventListener('click', () => isMoving = !isMoving);
         document.getElementById('toggleRotation').addEventListener('click', () => isRotating = !isRotating);
+
+        // Event-Listener für Taste "k"
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'k' || event.key === 'K') {
+                isMoving = !isMoving; // Bewegung umschalten
+            }
+        });
+
+        // Event-Listener für Taste "t"
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 't' || event.key === 'T') {
+                isRotating = !isRotating; // Rotation umschalten
+            }
+        });
 
         animate();
     </script>
